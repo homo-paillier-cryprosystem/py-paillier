@@ -21,12 +21,17 @@ class PaillierPublicKey(object):
         g = PrimeDigit().generation_big_simple_digit_in_modulo(_n)
         return g
 
+    def show_public_key(self):
+        print(f"public_key: {self.n}, {self.g}")
+
 
 class PaillierPrivateKey(object):
     def __init__(self, public_key, p, q):
-        self.public_key = public_key
-        self.lambdas = self.generation_lambdas(p, q)
-        self.mu = self.generation_mu(public_key.g, public_key.n, self.lambdas)
+        self.__public_key = public_key
+        self.__p = p
+        self.__q = q
+        self.lambdas = self.generation_lambdas(self.__p, self.__q)
+        self.mu = self.generation_mu(self.__public_key.g, self.__public_key.n, self.lambdas)
 
     @staticmethod
     def generation_lambdas(p: int, q: int):
@@ -39,6 +44,9 @@ class PaillierPrivateKey(object):
         reverse_digit = Euclid().reverse_digit(result_l_func, _n)
         result = reverse_digit % _n
         return result
+
+    def show_private_key(self):
+        print(f"private_key: {self.lambdas}, {self.mu}")
 
 
 def paillier_key_pair_generation(bit_key_length: int = DEFAULT_BIT_KEY_LENGTH):
