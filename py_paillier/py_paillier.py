@@ -18,7 +18,7 @@ class PaillierPublicKey(object):
 
     @staticmethod
     def generation_g(_n: int):
-        g = PrimeDigit().generation_big_simple_digit_in_modulo(_n)
+        g = PrimeDigit().generation_big_simple_digit_in_modulo(_n ** 2)
         return g
 
     def show_public_key(self):
@@ -26,6 +26,7 @@ class PaillierPublicKey(object):
 
 
 class PaillierPrivateKey(object):
+
     def __init__(self, public_key, p, q):
         self.__public_key = public_key
         self.__p = p
