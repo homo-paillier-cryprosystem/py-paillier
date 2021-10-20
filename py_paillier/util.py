@@ -1,4 +1,5 @@
 import random
+import time
 
 
 # алгоритмы Евклида
@@ -61,15 +62,20 @@ class PrimeDigit(object):
         else:
             return True
 
+    # Функция проверки простоты по малой теореме Ферма
+    @staticmethod
+    def fermat_s_little_theorem(n: int):
+        if pow(2, n - 1, n) == 1:
+            return True
+        else:
+            return False
+
     # генерация большого простого числа для p и q
     @staticmethod
     def generation_big_simple_digit(n: int):
         x = 4
-        while not PrimeDigit().is_prime(x):
-            # x = random.randint(10000, 100000)
-            # x = random.randint(100, 1000)
-            # x = random.randint(50, 100)
-            # x = random.randint(3, 20)
+        # while not PrimeDigit().is_prime(x):
+        while not PrimeDigit().fermat_s_little_theorem(x):
             x = random.SystemRandom().randrange(
                 2 ** (n - 1),
                 2 ** n
@@ -80,6 +86,71 @@ class PrimeDigit(object):
     @staticmethod
     def generation_big_simple_digit_in_modulo(n: int):
         x = 4
-        while not PrimeDigit().is_prime(x):
-            x = random.SystemRandom().randrange(1, n)
+        while not PrimeDigit().fermat_s_little_theorem(x):
+            x = random.SystemRandom().randrange(n // 2, n)
+            # print('\r%d' % x, end='', flush=True)
+        # print()
         return x
+
+    # решето Эратосфена
+    @staticmethod
+    def sieve_of_eratosthenes(n: int):
+        a = list(range(n + 1))
+        a[1] = 0
+        _list = []
+        i = 2
+        while i <= n:
+            if a[i] != 0:
+                _list.append(a[i])
+                for j in range(i, n + 1, i):
+                    a[j] = 0
+            i += 1
+        return _list
+
+
+# функция расчета приведенной системы вычетов по модулю n
+def calc_reduced_system_deductions(n: int):
+    multiplicative_group = []
+
+    # variable 1
+    # for number in range(1, n):
+    #     if Euclid().greatest_common_divisor(n, number) == 1:
+    #         multiplicative_group.append(number)
+
+    # variable 2
+    # multiplicative_group = PrimeDigit().sieve_of_eratosthenes(n)
+
+    # variable 3
+    prime_numbers = PrimeDigit().sieve_of_eratosthenes(n)
+    for number in prime_numbers:
+        if Euclid().greatest_common_divisor(n, number) == 1:
+            multiplicative_group.append(number)
+
+    return multiplicative_group
+
+
+# функция проверки текста на возможность шифрования
+def check_plaintext(plaintext_as_digits_list: [int], n: int):
+    currently = True
+    print(f"Идет проверка принадлежности символов множеству Z_{n}.\n"
+          f"Пожалуйста подождите.")
+
+    unique_digits = list(set(plaintext_as_digits_list))
+    percent = 100 / len(unique_digits)
+    digits_not_in_n = []
+
+    for digit in unique_digits:
+        if digit not in range(n):
+            digits_not_in_n.append(digit)
+            currently = False
+        progress = percent * (unique_digits.index(digit) + 1)
+        print('\rПроверка завершена на %3d%%' % progress, end='', flush=True)
+        time.sleep(0.01)
+
+    if not currently:
+        print(f"\nДанные числа {digits_not_in_n} не принадлежат множеству Z_{n}")
+        print("Сформируйте ключи повторно для большего количества бит.")
+        return False
+    else:
+        print("\nВведенный текст успешно проверен.")
+        return True
