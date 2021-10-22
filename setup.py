@@ -5,7 +5,7 @@ with open("README.md", "r") as readme_file:
 
 setup(
     name="py_paillier",
-    version="0.0.1",
+    version="0.0.2",
     author="Vsevolod Vlasov",
     author_email="cold.vv.ss@gmail.com",
     description="A package to convert your Jupyter Notebook",
