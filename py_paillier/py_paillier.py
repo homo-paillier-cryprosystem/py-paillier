@@ -3,8 +3,7 @@
 from util import Euclid, PrimeDigit, calc_reduced_system_deductions, check_plaintext
 import random
 
-
-DEFAULT_BIT_KEY_LENGTH = 256
+DEFAULT_BIT_KEY_LENGTH = 16
 
 
 def l_func(u: int, _n: int):
@@ -27,8 +26,8 @@ class PaillierPublicKey(object):
         public's:
             n (int): part of public key - see [1] \n
             g (int): part of public key - see [1] \n
+            n_square (int): (n ** 2), stored for calculations \n
         private's:
-            __n_square (int): (n ** 2), stored for calculations \n
             __multiplicative_group_mod_n (list[int]): the list used to encrypt the text by this public key - see [2] \n
             __len_multiplicative_group_mod_n (int): length of __multiplicative_group_mod_n \n
 
@@ -36,13 +35,14 @@ class PaillierPublicKey(object):
         [1] - https://en.wikipedia.org/wiki/Paillier_cryptosystem#Key_generation
         [2] - https://en.wikipedia.org/wiki/Multiplicative_group_of_integers_modulo_n
     """
+
     def __init__(self, n):
         # public key
         self.n = n
         self.g = self.generation_g(self.n)
 
         # parameters for calculations
-        self.__n_square = n ** 2
+        self.n_square = n ** 2
         self.__multiplicative_group_mod_n = []
         self.__len_multiplicative_group_mod_n = 0
 
@@ -63,9 +63,10 @@ class PaillierPublicKey(object):
         """
         print(f"public_key: {self.n}, {self.g}")
 
-    def encryption(self, plaintext_as_digits_list: [int]):
+    def encryption(self, plaintext_as_digits_list: [int], don_t_use_r: bool = False):
         """Encryption function of plain text presented as a list of unencrypted numbers.
 
+        :param don_t_use_r: (bool) optional, used for homomorphic encryption function
         :param plaintext_as_digits_list: (list[int]) - list of unencrypted numbers
         :return: empty list [] or non-empty list including encrypted digits
         """
@@ -73,19 +74,25 @@ class PaillierPublicKey(object):
             plaintext_as_digits_list, self.n
         )
         if plaintext_is_current:
-            if not self.__multiplicative_group_mod_n:
-                self.__multiplicative_group_mod_n = calc_reduced_system_deductions(self.n)
-                self.__len_multiplicative_group_mod_n = len(
-                    self.__multiplicative_group_mod_n
-                )
-            encrypt_text = []
-            for digit in plaintext_as_digits_list:
-                r = self.__multiplicative_group_mod_n[random.randint(0, self.__len_multiplicative_group_mod_n - 1)]
-                encrypt_text.append(
-                    ((self.g ** digit) * (r ** self.n)) % self.__n_square
-                )
-
-            return encrypt_text
+            encrypt_text_as_digits_list = []
+            if don_t_use_r:
+                for digit in plaintext_as_digits_list:
+                    encrypt_text_as_digits_list.append(
+                        ((self.g ** digit) * (1 ** self.n)) % self.n_square
+                    )
+            else:
+                # if not self.__multiplicative_group_mod_n:
+                #     self.__multiplicative_group_mod_n = calc_reduced_system_deductions(self.n)
+                #     self.__len_multiplicative_group_mod_n = len(
+                #         self.__multiplicative_group_mod_n
+                #     )
+                for digit in plaintext_as_digits_list:
+                    r = PrimeDigit().generating_a_large_prime_modulo(self.n)
+                    # r = self.__multiplicative_group_mod_n[random.randint(0, self.__len_multiplicative_group_mod_n - 1)]
+                    encrypt_text_as_digits_list.append(
+                        ((self.g ** digit) * (r ** self.n)) % self.n_square
+                    )
+            return encrypt_text_as_digits_list
         else:
             return []
 
@@ -164,36 +171,208 @@ class PaillierPrivateKey(object):
         return decrypt_text
 
 
-def paillier_key_pair_generation(bit_key_length: int = DEFAULT_BIT_KEY_LENGTH):
-    """Function for generating public and private keys based on the bit length of the key.
+class PaillierKeyPairGenerator(object):
+    """Class includes function for generation public and private keys.
 
-    :param bit_key_length: (int) key length in bits (optional)
-    :return: object's of classes PaillierPublicKey and PaillierPrivateKey
     """
-    def p_q_generating(half_bit_key_length: int):
-        """Helper function.
-        Generates _p and _q as large primes by certain condition.
+    @staticmethod
+    def paillier_key_pair_generation(bit_key_length: int = DEFAULT_BIT_KEY_LENGTH, return_pq: bool = False):
+        """Function for generating public and private keys based on the bit length of the key.
 
-        :param half_bit_key_length: (int) half of key length in bits
-        :return: (int) _p and (int) _q as large primes
+        :param bit_key_length: (int) key length in bits (optional)
+        :param return_pq: (bool) used for test
+        :return: object's of classes PaillierPublicKey and PaillierPrivateKey
         """
 
-        _p = 3
-        _q = 2
+        def p_q_generating(half_bit_key_length: int):
+            """Helper function.
+            Generates _p and _q as large primes by certain condition.
 
-        while Euclid().greatest_common_divisor(_p * _q, (_p - 1) * (_q - 1)) != 1:
-            _p = PrimeDigit().generation_a_large_prime(half_bit_key_length)
-            _q = PrimeDigit().generation_a_large_prime(half_bit_key_length)
-            while _q == _p:
+            :param half_bit_key_length: (int) half of key length in bits
+            :return: (int) _p and (int) _q as large primes
+            """
+
+            _p = 3
+            _q = 2
+
+            while Euclid().greatest_common_divisor(_p * _q, (_p - 1) * (_q - 1)) != 1:
+                _p = PrimeDigit().generation_a_large_prime(half_bit_key_length)
                 _q = PrimeDigit().generation_a_large_prime(half_bit_key_length)
+                while _q == _p:
+                    _q = PrimeDigit().generation_a_large_prime(half_bit_key_length)
 
-        return _p, _q
+            return _p, _q
 
-    p, q = p_q_generating(bit_key_length // 2)
+        p, q = p_q_generating(bit_key_length // 2)
 
-    n = p * q
+        n = p * q
 
-    public_key = PaillierPublicKey(n)
-    private_key = PaillierPrivateKey(public_key, p, q)
+        public_key = PaillierPublicKey(n)
+        private_key = PaillierPrivateKey(public_key, p, q)
+        if return_pq:
+            return public_key, private_key, p, q
+        else:
+            return public_key, private_key
 
-    return public_key, private_key
+    @staticmethod
+    def paillier_key_pair_generation_from_pq(p: int, q: int):
+        """Function for generating public and private keys based on numbers p and q.
+
+        :param p: (int) large prime
+        :param q: (int) large prime
+        :return: object's of classes PaillierPublicKey and PaillierPrivateKey
+        """
+        n = p * q
+
+        public_key = PaillierPublicKey(n)
+        private_key = PaillierPrivateKey(public_key, p, q)
+
+        return public_key, private_key
+
+
+class Homomorphic(PaillierPublicKey):
+    """
+
+    """
+    def __init__(self, n, g):
+        super().__init__(n)
+        self.g = g
+
+    @staticmethod
+    def comparison_of_text_lengths(
+            first_encrypt_text_as_digits_list: [int],
+            second_encrypt_text_as_digits_list: [int]
+    ):
+        """Helper function fo comparison of text lengths.
+
+        :param first_encrypt_text_as_digits_list: (list [int])
+        :param second_encrypt_text_as_digits_list: (list [int])
+        :return: (bool) True if the text lengths are equivalent, False otherwise
+        """
+        length_first_enc_text = len(first_encrypt_text_as_digits_list)
+        length_second_enc_text = len(second_encrypt_text_as_digits_list)
+        if length_first_enc_text != length_second_enc_text:
+            print("The texts are different in length.")
+            if length_first_enc_text > length_second_enc_text:
+                print("The first text is longer than the second. Add to the second text its values from the beginning "
+                      "of the list, and then cut the second text to the length of the first in any way convenient for "
+                      "you. ")
+                print("Example (second_encrypt_text_as_digits_list * 2)[:len(first_encrypt_text_as_digits_list)]")
+            else:
+                print("The second text is longer than the first. Add to the first text its values from the beginning "
+                      "of the list, and then cut the first text to the length of the second in any way convenient for "
+                      "you. ")
+                print("Example (first_encrypt_text_as_digits_list * 2)[:len(second_encrypt_text_as_digits_list)]")
+            return False
+        else:
+            return True
+
+    def addition_of_two_ciphertexts(
+            self,
+            first_encrypt_text_as_digits_list: [int],
+            second_encrypt_text_as_digits_list: [int],
+    ):
+        """Function for adding two ciphertexts with one public key.
+
+        :param first_encrypt_text_as_digits_list: (list [int])
+        :param second_encrypt_text_as_digits_list: (list [int])
+        :return: addition - (list [int] or list []) - the sum of two texts encrypted with one public key
+                                                      or empty list if the text lengths are non-equivalent
+        """
+
+        addition = []
+
+        if not self.comparison_of_text_lengths(first_encrypt_text_as_digits_list, second_encrypt_text_as_digits_list):
+            print("An empty list will be returned to you.")
+        else:
+            for i in range(len(first_encrypt_text_as_digits_list)):
+                addition.append(
+                    (first_encrypt_text_as_digits_list[i] * second_encrypt_text_as_digits_list[i]) % self.n_square
+                )
+        return addition
+
+    def addition_of_cipher_and_plaintext_via_g(
+            self,
+            first_encrypt_text_as_digits_list: [int],
+            second_plaintext_as_digits_list: [int]
+    ):
+        """Function for adding encrypted and plaintext using one public key.
+
+        :param first_encrypt_text_as_digits_list: (list [int])
+        :param second_plaintext_as_digits_list: (list [int])
+        :return: addition - (list [int] or list []) - the sum of two texts encrypted with one public key
+                                                      or empty list if the text lengths are non-equivalent
+        """
+
+        addition = []
+
+        if not self.comparison_of_text_lengths(first_encrypt_text_as_digits_list, second_plaintext_as_digits_list):
+            print("An empty list will be returned to you.")
+        else:
+            second_encrypt_text_as_digits_list = self.encryption(second_plaintext_as_digits_list, True)
+            for i in range(len(first_encrypt_text_as_digits_list)):
+                addition.append(
+                    (first_encrypt_text_as_digits_list[i] * second_encrypt_text_as_digits_list[i]) % self.n_square
+                )
+        return addition
+
+    def __raising_an_encrypted_number_to_the_k_power(
+            self,
+            encrypted_number: int,
+            k_power: int
+    ):
+        """Helper function for raising an encrypted number to the power k.
+
+        :param encrypted_number: (int) - encrypted number
+        :param k_power: (int) power
+        :return: (int)
+        """
+        return (encrypted_number ** k_power) % self.n_square
+
+    def raising_of_ciphertext_to_the_power_of_plaintext(
+            self,
+            first_encrypt_text_as_digits_list: [int],
+            second_plaintext_as_digits_list: [int]
+    ):
+        """Function of raising the ciphertext to the power of plaintext.
+
+        :param first_encrypt_text_as_digits_list: (list [int])
+        :param second_plaintext_as_digits_list: (list [int])
+        :return: result_list - (list [int] or list []) - the result of raising the ciphertext to the power
+                                                         of the plaintext with one public key
+                                                         or empty list if the text lengths are non-equivalent
+        """
+        result_list = []
+
+        if not self.comparison_of_text_lengths(first_encrypt_text_as_digits_list, second_plaintext_as_digits_list):
+            print("An empty list will be returned to you.")
+        else:
+            for i in range(len(first_encrypt_text_as_digits_list)):
+                result_list.append(
+                    self.__raising_an_encrypted_number_to_the_k_power(
+                        first_encrypt_text_as_digits_list[i], second_plaintext_as_digits_list[i]
+                    )
+                )
+        return result_list
+
+    def raising_the_ciphertext_to_the_k_power(
+            self,
+            encrypt_text_as_digits_list: [int],
+            k_power: int
+    ):
+        """Function for raising the ciphertext to the power k.
+
+        :param encrypt_text_as_digits_list: (list [int])
+        :param k_power: (int) power
+        :return: result_list - (list [int]) - the result of raising the ciphertext to the power k
+        """
+
+        result_list = []
+
+        for i in range(len(encrypt_text_as_digits_list)):
+            result_list.append(
+                self.__raising_an_encrypted_number_to_the_k_power(
+                    encrypt_text_as_digits_list[i], k_power
+                )
+            )
+        return result_list

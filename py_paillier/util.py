@@ -1,3 +1,5 @@
+"""Help functions for py_paillier"""
+
 import random
 import time
 
@@ -139,17 +141,18 @@ class PrimeDigit(object):
         Links:
             [1] - https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
         """
-        a = list(range(n + 1))
-        a[1] = 0
-        _list = []
+
+        list_all_numbers = list(range(n + 1))
+        list_all_numbers[1] = 0
+        primes_list = []
         i = 2
         while i <= n:
-            if a[i] != 0:
-                _list.append(a[i])
+            if list_all_numbers[i] != 0:
+                primes_list.append(list_all_numbers[i])
                 for j in range(i, n + 1, i):
-                    a[j] = 0
+                    list_all_numbers[j] = 0
             i += 1
-        return _list
+        return primes_list
 
 
 def calc_reduced_system_deductions(n: int):
@@ -185,25 +188,19 @@ def check_plaintext(plaintext_as_digits_list: [int], n: int):
     :return: (bool) suitable text (True) or not (False)
     """
     currently = True
-    print(f"Идет проверка принадлежности символов множеству Z_{n}.\n"
-          f"Пожалуйста подождите.")
 
     unique_digits = list(set(plaintext_as_digits_list))
-    percent = 100 / len(unique_digits)
     digits_not_in_n = []
 
     for digit in unique_digits:
         if digit not in range(n):
             digits_not_in_n.append(digit)
             currently = False
-        progress = percent * (unique_digits.index(digit) + 1)
-        print('\rПроверка завершена на %3d%%' % progress, end='', flush=True)
-        time.sleep(0.01)
 
     if not currently:
-        print(f"\nДанные числа {digits_not_in_n} не принадлежат множеству Z_{n}")
-        print("Сформируйте ключи повторно для большего количества бит.")
+        print(f"\nThe given numbers {digits_not_in_n} do not belong to the set  Z_{n}")
+        print("Re-generate keys for more bits.")
         return False
     else:
-        print("\nВведенный текст успешно проверен.")
+        print("\nThe entered text has been successfully verified.")
         return True
