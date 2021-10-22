@@ -13,7 +13,7 @@ setup(
     url="https://github.com/homo-paillier-cryprosystem/py-paillier/",
     packages=find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 3.8.3",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
 )
