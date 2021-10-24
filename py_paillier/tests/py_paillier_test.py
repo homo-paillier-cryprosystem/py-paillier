@@ -1,11 +1,10 @@
 from py_paillier.py_paillier import PaillierPublicKey, PaillierPrivateKey, Homomorphic
 from py_paillier.py_paillier import PaillierKeyPairGenerator as pkpg
-from unittest import TestCase
-import unittest
+from unittest import main, TestCase
 
 
-MIN_POWER = 16
-MAX_POWER = 17
+MIN_POWER = 1024
+MAX_POWER = 1025
 
 
 class PaillierKeyPairGenerationTest(TestCase):
@@ -217,4 +216,4 @@ class HomomorphicTest(TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    main()

@@ -5,10 +5,10 @@ with open("README.md", "r") as readme_file:
 
 setup(
     name="py_paillier",
-    version="0.0.2",
+    version="0.0.5",
     author="Vsevolod Vlasov",
     author_email="cold.vv.ss@gmail.com",
-    description="A package to convert your Jupyter Notebook",
+    description="Paillier cryptosystem",
     long_description=readme,
     url="https://github.com/homo-paillier-cryprosystem/py-paillier/",
     packages=find_packages(),

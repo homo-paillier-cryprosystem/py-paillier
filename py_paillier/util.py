@@ -1,7 +1,6 @@
 """Help functions for py_paillier"""
 
 import random
-import time
 
 
 class Euclid(object):
@@ -72,24 +71,6 @@ class Euclid(object):
 class PrimeDigit(object):
 
     @staticmethod
-    def is_prime(n: int):
-        """Function testing simplicity.
-
-        :param n: (int) digit for test
-        :return: (bool) prime number (True) or not a prime number (False)
-        """
-        i = 2
-        j = 0
-        while i ** 2 <= n and j != 1:
-            if n % i == 0:
-                j += 1
-            i += 1
-        if j == 1:
-            return False
-        else:
-            return True
-
-    @staticmethod
     def fermat_s_little_theorem(n: int):
         """Function for checking simplicity by Fermat's little theorem - see [1].
 
@@ -103,6 +84,24 @@ class PrimeDigit(object):
             return True
         else:
             return False
+
+    @staticmethod
+    def generation_a_large_prime_by_search(n: int):
+        """The function of generating a large simply number by searching for the next from random.
+
+        :param n: (int) key length in bits
+        :return: (int) large prime
+        """
+
+        digit = random.SystemRandom().randrange(
+            2 ** (n - 1),
+            2 ** n
+        )
+        if digit % 2 == 0:
+            digit += 1
+        while not PrimeDigit().fermat_s_little_theorem(digit):
+            digit += 2
+        return digit
 
     @staticmethod
     def generation_a_large_prime(n: int):
@@ -136,7 +135,7 @@ class PrimeDigit(object):
         """Function of finding all primes up to some integer n.
 
         :param n: (int) as limit
-        :return: (_list[int]) list of primes up to n
+        :return: (list[int]) list of primes up to n
 
         Links:
             [1] - https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
@@ -154,6 +153,70 @@ class PrimeDigit(object):
             i += 1
         return primes_list
 
+    @staticmethod
+    def segment_sieve_of_eratosthenes(n: int):
+        """Function of finding all prime numbers up to some integer n by segments.
+
+        :param n: (int) as limit
+        :return: (list[int]) list of primes up to n
+
+        Links:
+            [1] - https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
+        """
+
+        def create_next_segment_as_bool_list(_n: int, _down_limit: int, _delta: int):
+            """
+
+            :param _n: (int) as limit
+            :param _down_limit: (int)
+            :param _delta: the difference between the down_limit and up_limit
+            :return: (list[bool]) - boolean list for less memory
+            """
+            if (_down_limit + _delta) > _n:
+                up_limit = _n
+            else:
+                up_limit = _down_limit + _delta
+            return list(True for _ in range(_down_limit, up_limit))
+
+        delta = 100000
+        down_limit = delta
+
+        list_all_numbers = list(range(delta))
+        list_all_numbers[1] = 1
+        primes_list = []
+        i = 2
+        while i < delta:
+            if list_all_numbers[i] != 0:
+                primes_list.append(list_all_numbers[i])
+                for j in range(i, delta, i):
+                    list_all_numbers[j] = 0
+            i += 1
+
+        while down_limit < n:
+            segment = create_next_segment_as_bool_list(n, down_limit, delta)
+
+            if (down_limit + delta) >= n:
+                last_segment_element = n - 1
+            else:
+                last_segment_element = down_limit + delta - 1
+
+            for prime in primes_list:
+                if pow(prime, 2) < last_segment_element:
+                    for index_element in range(len(segment) - 1):
+                        true_index = down_limit + index_element
+                        if true_index % prime == 0:
+                            for to_false_index in range(true_index, last_segment_element, true_index):
+                                segment[true_index - down_limit] = False
+
+            for index_element in range(len(segment) - 1):
+                if segment[index_element]:
+                    true_index = down_limit + index_element
+                    primes_list.append(true_index)
+
+            down_limit += delta
+
+        return primes_list
+
 
 def calc_reduced_system_deductions(n: int):
     """Function for calculating the reduced system of residues modulo n.
@@ -161,21 +224,22 @@ def calc_reduced_system_deductions(n: int):
     :param n: (int) as modulo
     :return: (list[int]) list of numbers of the reduced system of residues modulo n
     """
-    multiplicative_group = []
 
     # variable 1
+    # multiplicative_group = []
     # for number in range(1, n):
     #     if Euclid().greatest_common_divisor(n, number) == 1:
     #         multiplicative_group.append(number)
 
     # variable 2
-    # multiplicative_group = PrimeDigit().sieve_of_eratosthenes(n)
+    multiplicative_group = PrimeDigit().sieve_of_eratosthenes(n)
 
     # variable 3
-    prime_numbers = PrimeDigit().sieve_of_eratosthenes(n)
-    for number in prime_numbers:
-        if Euclid().greatest_common_divisor(n, number) == 1:
-            multiplicative_group.append(number)
+    # multiplicative_group = []
+    # prime_numbers = PrimeDigit().sieve_of_eratosthenes(n)
+    # for number in prime_numbers:
+    #     if Euclid().greatest_common_divisor(n, number) == 1:
+    #         multiplicative_group.append(number)
 
     return multiplicative_group
 

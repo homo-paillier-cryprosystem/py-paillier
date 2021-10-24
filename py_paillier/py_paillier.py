@@ -1,6 +1,6 @@
 """Paillier encryption library for partially homomorphic encryption."""
 
-from util import Euclid, PrimeDigit, calc_reduced_system_deductions, check_plaintext
+from py_paillier.util import Euclid, PrimeDigit, calc_reduced_system_deductions, check_plaintext
 import random
 
 DEFAULT_BIT_KEY_LENGTH = 16
@@ -24,9 +24,9 @@ class PaillierPublicKey(object):
 
     Args:
         public's:
-            n (int): part of public key - see [1] \n
-            g (int): part of public key - see [1] \n
-            n_square (int): (n ** 2), stored for calculations \n
+            :arg n (int): part of public key - see [1] \n
+            :arg g (int): part of public key - see [1] \n
+            :arg n_square (int): (n ** 2), stored for calculations \n
         private's:
             __multiplicative_group_mod_n (list[int]): the list used to encrypt the text by this public key - see [2] \n
             __len_multiplicative_group_mod_n (int): length of __multiplicative_group_mod_n \n
@@ -43,8 +43,8 @@ class PaillierPublicKey(object):
 
         # parameters for calculations
         self.n_square = n ** 2
-        self.__multiplicative_group_mod_n = []
-        self.__len_multiplicative_group_mod_n = 0
+        # self.__multiplicative_group_mod_n = []
+        # self.__len_multiplicative_group_mod_n = 0
 
     @staticmethod
     def generation_g(_n: int):
@@ -88,7 +88,11 @@ class PaillierPublicKey(object):
                 #     )
                 for digit in plaintext_as_digits_list:
                     r = PrimeDigit().generating_a_large_prime_modulo(self.n)
-                    # r = self.__multiplicative_group_mod_n[random.randint(0, self.__len_multiplicative_group_mod_n - 1)]
+                    # r = self.__multiplicative_group_mod_n[
+                    #     random.randint(
+                    #         0, self.__len_multiplicative_group_mod_n - 1
+                    #     )
+                    # ]
                     encrypt_text_as_digits_list.append(
                         ((self.g ** digit) * (r ** self.n)) % self.n_square
                     )
@@ -114,7 +118,7 @@ class PaillierPrivateKey(object):
     """
 
     def __init__(self, public_key, p, q):
-        self.__public_key = public_key
+        self.__public_key: PaillierPublicKey = public_key
         self.__p = p
         self.__q = q
         self.lambdas = self.generation_lambdas(self.__p, self.__q)
