@@ -1,7 +1,6 @@
 """Paillier encryption library for partially homomorphic encryption."""
 
-from py_paillier.util import Euclid, PrimeDigit, calc_reduced_system_deductions, check_plaintext
-import random
+from py_paillier.util import Euclid, PrimeDigit, check_plaintext
 
 DEFAULT_BIT_KEY_LENGTH = 16
 
@@ -23,17 +22,12 @@ class PaillierPublicKey(object):
     """Contains a public key and associated encryption method.
 
     Args:
-        public's:
-            :arg n (int): part of public key - see [1] \n
-            :arg g (int): part of public key - see [1] \n
-            :arg n_square (int): (n ** 2), stored for calculations \n
-        private's:
-            __multiplicative_group_mod_n (list[int]): the list used to encrypt the text by this public key - see [2] \n
-            __len_multiplicative_group_mod_n (int): length of __multiplicative_group_mod_n \n
+        :arg n (int): part of public key - see [1] \n
+        :arg g (int): part of public key - see [1] \n
+        :arg n_square (int): (n ** 2), stored for calculations \n
 
     Links:
         [1] - https://en.wikipedia.org/wiki/Paillier_cryptosystem#Key_generation
-        [2] - https://en.wikipedia.org/wiki/Multiplicative_group_of_integers_modulo_n
     """
 
     def __init__(self, n):
@@ -43,8 +37,6 @@ class PaillierPublicKey(object):
 
         # parameters for calculations
         self.n_square = n ** 2
-        # self.__multiplicative_group_mod_n = []
-        # self.__len_multiplicative_group_mod_n = 0
 
     @staticmethod
     def generation_g(_n: int):
@@ -81,18 +73,8 @@ class PaillierPublicKey(object):
                         ((self.g ** digit) * (1 ** self.n)) % self.n_square
                     )
             else:
-                # if not self.__multiplicative_group_mod_n:
-                #     self.__multiplicative_group_mod_n = calc_reduced_system_deductions(self.n)
-                #     self.__len_multiplicative_group_mod_n = len(
-                #         self.__multiplicative_group_mod_n
-                #     )
                 for digit in plaintext_as_digits_list:
                     r = PrimeDigit().generating_a_large_prime_modulo(self.n)
-                    # r = self.__multiplicative_group_mod_n[
-                    #     random.randint(
-                    #         0, self.__len_multiplicative_group_mod_n - 1
-                    #     )
-                    # ]
                     encrypt_text_as_digits_list.append(
                         ((self.g ** digit) * (r ** self.n)) % self.n_square
                     )

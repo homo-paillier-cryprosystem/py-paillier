@@ -225,21 +225,7 @@ def calc_reduced_system_deductions(n: int):
     :return: (list[int]) list of numbers of the reduced system of residues modulo n
     """
 
-    # variable 1
-    # multiplicative_group = []
-    # for number in range(1, n):
-    #     if Euclid().greatest_common_divisor(n, number) == 1:
-    #         multiplicative_group.append(number)
-
-    # variable 2
     multiplicative_group = PrimeDigit().sieve_of_eratosthenes(n)
-
-    # variable 3
-    # multiplicative_group = []
-    # prime_numbers = PrimeDigit().sieve_of_eratosthenes(n)
-    # for number in prime_numbers:
-    #     if Euclid().greatest_common_divisor(n, number) == 1:
-    #         multiplicative_group.append(number)
 
     return multiplicative_group
 
