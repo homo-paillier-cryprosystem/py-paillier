@@ -38,7 +38,8 @@ To use homomorphic properties, you need to import class `Homomorphic`:
 from py_paillier.py_paillier import PaillierKeyPairGenerator as KeyGen
 from py_paillier.py_paillier import Homomorphic
 
-public_key, private_key = KeyGen().paillier_key_pair_generation()
+# The changed key length in bits is 128
+public_key, private_key = KeyGen().paillier_key_pair_generation(128)
 homomorphic = Homomorphic(public_key.n, public_key.g)
 
 plaintext_1 = [20094, 25774, 16518, 18209, 22329]
