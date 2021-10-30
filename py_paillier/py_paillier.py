@@ -313,7 +313,7 @@ class Homomorphic(PaillierPublicKey):
         :param k_power: (int) power
         :return: (int)
         """
-        return (encrypted_number ** k_power) % self.n_square
+        return pow(encrypted_number, k_power, self.n_square)
 
     def raising_of_ciphertext_to_the_power_of_plaintext(
             self,
