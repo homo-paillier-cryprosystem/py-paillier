@@ -10,6 +10,7 @@ setup(
     author_email="cold.vv.ss@gmail.com",
     description="Paillier cryptosystem",
     long_description=readme,
+    long_description_content_type='text/markdown',
     url="https://github.com/homo-paillier-cryprosystem/py-paillier/",
     packages=find_packages(),
     classifiers=[
