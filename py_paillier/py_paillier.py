@@ -74,7 +74,8 @@ class PaillierPublicKey(object):
                     )
             else:
                 for digit in plaintext_as_digits_list:
-                    r = PrimeDigit().generating_a_large_prime_modulo(self.n)
+                    # r = PrimeDigit().generating_a_large_prime_modulo(self.n)
+                    r = PrimeDigit().gen_mutually(self.n)
                     encrypt_text_as_digits_list.append(
                         ((self.g ** digit) * (r ** self.n)) % self.n_square
                     )
