@@ -228,6 +228,10 @@ class PrimeDigit(object):
             )
         return digit
 
+    @staticmethod
+    def gen_random(n: int):
+        return random.SystemRandom().randint(n // 2, n)
+
 
 def calc_reduced_system_deductions(n: int):
     """Function for calculating the reduced system of residues modulo n.

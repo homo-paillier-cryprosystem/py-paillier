@@ -3,8 +3,8 @@ from py_paillier.py_paillier import PaillierKeyPairGenerator as pkpg
 from unittest import main, TestCase
 
 
-MIN_POWER = 16
-MAX_POWER = 32
+MIN_POWER = 1024
+MAX_POWER = 1024
 
 
 class PaillierKeyPairGenerationTest(TestCase):
